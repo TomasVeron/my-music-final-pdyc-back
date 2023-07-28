@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: ${CONFIG_ENV:dev}
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${CONFIG_GIT_URI:https://github.com/TomasVeron/core-mymusic-config-server.git}
+          default-label: ${CONFIG_LABEL:main}
+server:
+  port: ${PORT:8080}
+#  -> repo con archivos de configuracion que se distribuyen hacia todos los clientes del config server

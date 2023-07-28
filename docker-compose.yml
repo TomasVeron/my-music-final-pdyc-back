@@ -1,0 +1,85 @@
+version: "3"
+
+services:
+  ms-config-server:
+    build:
+      context: .
+      dockerfile: config-server/Dockerfile
+    container_name: ms-config-server
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      - CONFIG_ENV=prod
+      - CONFIG_GIT_URI=https://github.com/TomasVeron/core-mymusic-config-server.git
+      - CONFIG_LABEL=main
+      - PORT=8080
+
+  ms-eureka-server:
+    build:
+      context: .
+      dockerfile: eureka-server/Dockerfile
+    container_name: ms-eureka-server
+    restart: on-failure
+    ports:
+      - "8761:8761"
+    environment:
+      - PORT=8761
+
+  ms-gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: ms-gateway
+    restart: on-failure
+    ports:
+      - "8085:8085"
+    environment:
+      - MS_PLAYLIST_HOST=http://ms-playlist:8082
+      - MS_FIREBASE_AUTH_SERVER_HOST=http://ms-firebase-auth-server:8083
+
+  mymusic-db:
+    image: postgres:15.1-alpine
+    container_name: mymusic-db
+    environment:
+      - POSTGRES_DB=mymusic
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=12345678
+    ports:
+      - "5433:5432"
+    restart: on-failure
+
+  ms-playlist:
+    build:
+      context: .
+      dockerfile: playlists/Dockerfile
+    container_name: ms-playlist
+    restart: on-failure
+    depends_on:
+      - mymusic-db
+      - ms-config-server
+      - ms-gateway
+      - ms-eureka-server
+    environment:
+      - EUREKA_HOST=ms-eureka-server:8761
+      - CONFIG_SERVER_HOST=ms-config-server:8080
+      - CONFIG_PROFILE=prod
+      - DATABASE_HOST=mymusic-db:5432
+      - DATABASE_USER=root
+      - DATABASE_PASSWORD=12345678
+      - DATABASE_NAME=mymusic
+      - PORT=8082
+
+  ms-firebase-auth-server:
+    build:
+      context: .
+      dockerfile: firebase-auth-server/Dockerfile
+    container_name: ms-firebase-auth-server
+    restart: "no"
+    depends_on:
+      - ms-config-server
+      - ms-gateway
+      - ms-eureka-server
+    environment:
+      - FIREBASE_CONFIG_PATH=/app/assets/firebase_config.json
+      - PORT=8083

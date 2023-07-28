@@ -1,0 +1,21 @@
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - AddResponseHeader=Access-Control-Allow-Origin, *
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+
+server:
+  port: ${PORT:8085}
+
+mymusic:
+  ms-playlists:
+    url: ${MS_PLAYLIST_HOST:http://localhost:8082}
+  ms-firebase-auth-server:
+    url: ${MS_FIREBASE_AUTH_SERVER_HOST:http://localhost:8083}
