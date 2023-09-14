@@ -55,6 +55,8 @@ services:
       dockerfile: playlists/Dockerfile
     container_name: ms-playlist
     restart: on-failure
+    ports:
+      - "8082:8082"
     depends_on:
       - mymusic-db
       - ms-config-server
